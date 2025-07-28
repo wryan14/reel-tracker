@@ -5,9 +5,9 @@ Personal movie tracking application that runs locally on your computer.
 ReelTracker helps you organize your movie watching by maintaining watchlists, tracking viewing history, and rating films you've seen. The system searches movie databases to find film details, stores your personal data locally in a private database, and provides statistics about your viewing habits. Users receive a web interface for managing their movie collection and viewing analytics through charts and timelines.
 
 ## Quick Start
-**To check if it's working:** Open http://localhost:5000 in your browser after starting
-**To restart if needed:** `python3 app.py`
-**If problems persist:** See [docs/TECHNICAL.md](docs/TECHNICAL.md) or contact system administrator
+- **To check if it's working:** Open http://localhost:5000 in your browser after starting
+- **To restart if needed:** `python3 app.py`
+- **If problems persist:** See [docs/TECHNICAL.md](docs/TECHNICAL.md)
 
 ## System Flow
 This diagram shows how ReelTracker processes movie data from search to storage.
@@ -48,8 +48,8 @@ Flask web application with SQLite database for local movie tracking and analytic
 
 ## Quick Setup
 
-```
-git clone [repository-url]
+```bash
+git clone https://github.com/wryan14/reel-tracker.git
 cd reel-tracker
 pip install -r requirements.txt
 python3 app.py
@@ -61,9 +61,5 @@ python3 app.py
 
 ## Documentation
 
-- **docs/TECHNICAL.md** - Developer setup, architecture, troubleshooting
-- **docs/STAKEHOLDER.md** - Business impact and strategic value
-
-## Contact
-
-System Administrator - for technical issues or setup problems
+- **[docs/TECHNICAL.md](docs/TECHNICAL.md)** - Developer setup, architecture, troubleshooting
+- **[docs/STAKEHOLDER.md](docs/STAKEHOLDER.md)** - Business impact and strategic value
