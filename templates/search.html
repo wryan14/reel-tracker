@@ -7,13 +7,13 @@
     <h2 class="sr-only" id="search-form">Search Form</h2>
     <form method="get" role="search">
         <div class="form-group">
-            <label for="search-query">Search by title or director</label>
+            <label for="search-query">Search by movie title</label>
             <input 
                 type="text" 
                 id="search-query"
                 name="q" 
                 value="{{ query }}" 
-                placeholder="Enter movie title or director name"
+                placeholder="Enter movie title"
                 autocomplete="off"
                 required
             >
@@ -39,9 +39,6 @@
                     {% endif %}
                     {% if movie.year %}<span class="meta">({{ movie.year }})</span>{% endif %}
                 </div>
-                {% if movie.director %}
-                    <div class="movie-meta">Director: {{ movie.director }}</div>
-                {% endif %}
                 {% if movie.genre %}
                     <div class="movie-meta">Genre: {{ movie.genre }}</div>
                 {% endif %}

@@ -1,4 +1,4 @@
-"""MovieHive - Minimal movie tracking application.
+"""ReelTracker - Minimal movie tracking application.
 
 Core Flask application with SQLite database for tracking movies,
 watchlist, ratings, and viewing history.
@@ -36,7 +36,7 @@ except ImportError as e:
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['DATABASE'] = 'moviehive.db'
+app.config['DATABASE'] = 'reeltracker.db'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
 # Simple cache decorator
@@ -184,13 +184,20 @@ def search():
             api_results = tmdb.search_movies(query)
             
             if api_results and api_results.get('results'):
+                # Get genre mapping from TMDB
+                genre_map = tmdb.get_genre_mapping()
+                
                 for movie in api_results['results'][:20]:  # Limit to 20 results
+                    # Convert genre IDs to names
+                    genre_ids = movie.get('genre_ids', [])
+                    genre_names = [genre_map.get(gid, f'Genre {gid}') for gid in genre_ids[:3]]  # Limit to 3 genres
+                    genre_text = ', '.join(genre_names) if genre_names else 'Unknown Genre'
+                    
                     movies.append({
                         'id': movie.get('id'),
                         'title': movie.get('title', 'Unknown Title'),
                         'year': movie.get('release_date', '')[:4] if movie.get('release_date') else 'Unknown',
-                        'director': 'Unknown Director',  # TMDB basic search doesn't include director
-                        'genre': ', '.join([str(g) for g in movie.get('genre_ids', [])]),
+                        'genre': genre_text,
                         'plot': movie.get('overview', 'No plot available'),
                         'poster_url': tmdb.get_poster_url(movie.get('poster_path', '')),
                         'vote_average': movie.get('vote_average', 0),
@@ -206,10 +213,10 @@ def search():
         db = get_db()
         local_movies = db.execute('''
             SELECT * FROM movies 
-            WHERE title LIKE ? OR director LIKE ?
+            WHERE title LIKE ?
             ORDER BY year DESC
             LIMIT 20
-        ''', (f'%{query}%', f'%{query}%')).fetchall()
+        ''', (f'%{query}%',)).fetchall()
         
         for movie in local_movies:
             movies.append({
@@ -232,6 +239,10 @@ def movie_detail(movie_id):
     """Show movie details with rating and watchlist options."""
     db = get_db()
     source = request.args.get('source', 'local')
+    
+    # Get today's date for the date picker
+    from datetime import date
+    today_date = date.today().strftime('%Y-%m-%d')
     
     movie = None
     
@@ -278,7 +289,8 @@ def movie_detail(movie_id):
                       movie=movie,
                       rating=rating,
                       in_watchlist=in_watchlist,
-                      watch_count=watch_count)
+                      watch_count=watch_count,
+                      today_date=today_date)
 
 
 @app.route('/movie/<int:movie_id>/rate', methods=['POST'])
@@ -334,9 +346,31 @@ def remove_from_watchlist(movie_id):
 
 @app.route('/movie/<int:movie_id>/watched', methods=['POST'])
 def mark_watched(movie_id):
-    """Mark movie as watched."""
+    """Mark movie as watched with optional custom date."""
     db = get_db()
-    db.execute('INSERT INTO viewing_history (movie_id) VALUES (?)', (movie_id,))
+    
+    # Get watched date from form, default to current timestamp
+    watched_date = request.form.get('watched_date')
+    notes = request.form.get('notes', '').strip()
+    
+    if watched_date:
+        # Convert date to timestamp format
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(watched_date, '%Y-%m-%d')
+            watched_timestamp = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            watched_timestamp = None
+    else:
+        watched_timestamp = None
+    
+    if watched_timestamp:
+        db.execute('INSERT INTO viewing_history (movie_id, watched_at, notes) VALUES (?, ?, ?)', 
+                  (movie_id, watched_timestamp, notes))
+    else:
+        db.execute('INSERT INTO viewing_history (movie_id, notes) VALUES (?, ?)', 
+                  (movie_id, notes))
+    
     db.commit()
     
     return f'<meta http-equiv="refresh" content="0;url=/movie/{movie_id}">'
@@ -373,8 +407,49 @@ def stats():
     # Watchlist size
     watchlist_size = db.execute('SELECT COUNT(*) as count FROM watchlist').fetchone()
     
-    # Watch count
+    # Watch count  
     total_watches = db.execute('SELECT COUNT(*) as count FROM viewing_history').fetchone()
+    
+    # Unique genres count
+    unique_genres = db.execute('''
+        SELECT COUNT(DISTINCT genre) as count 
+        FROM movies m 
+        JOIN user_ratings r ON m.id = r.movie_id 
+        WHERE m.genre IS NOT NULL AND m.genre != ''
+    ''').fetchone()
+    
+    # Current viewing streak (simplified - days with movie watches)
+    current_streak = db.execute('''
+        SELECT COUNT(DISTINCT DATE(watched_at)) as count 
+        FROM viewing_history 
+        WHERE watched_at >= date('now', '-30 days')
+    ''').fetchone()
+    
+    # Weekly movie count (last 7 days)
+    weekly_movies = db.execute('''
+        SELECT COUNT(*) as count 
+        FROM viewing_history 
+        WHERE watched_at >= date('now', '-7 days')
+    ''').fetchone()
+    
+    # Unique decades
+    unique_decades = db.execute('''
+        SELECT COUNT(DISTINCT (year/10)*10) as count 
+        FROM movies m 
+        JOIN user_ratings r ON m.id = r.movie_id 
+        WHERE m.year IS NOT NULL
+    ''').fetchone()
+    
+    # Watchlist completion percentage
+    watchlist_completion = db.execute('''
+        SELECT 
+            CASE 
+                WHEN COUNT(w.id) = 0 THEN 0
+                ELSE ROUND((COUNT(vh.id) * 100.0) / COUNT(w.id))
+            END as completion
+        FROM watchlist w
+        LEFT JOIN viewing_history vh ON w.movie_id = vh.movie_id
+    ''').fetchone()
     
     # Top rated movies
     top_rated = db.execute('''
@@ -430,30 +505,16 @@ def stats():
                       avg_rating=avg_rating,
                       watchlist_size=watchlist_size,
                       total_watches=total_watches,
+                      unique_genres=unique_genres,
+                      current_streak=current_streak,
+                      weekly_movies=weekly_movies,
+                      unique_decades=unique_decades,
+                      watchlist_completion=watchlist_completion,
                       top_rated=top_rated,
                       most_watched=most_watched,
                       rating_distribution=rating_distribution,
                       time_series_data=time_series_data,
                       viewing_streaks=viewing_streaks)
-
-
-@app.route('/timeline')
-def timeline():
-    """Show time series viewing habits analysis."""
-    if not FEATURES_ENABLED:
-        return "Time series features not available", 404
-    
-    try:
-        ts_service = get_time_series_service()
-        time_series_data = ts_service.get_viewing_timeline_extended()
-        viewing_streaks = ts_service.get_viewing_streaks()
-        
-        return render_page('time_series.html', title='Viewing Timeline',
-                          time_series_data=time_series_data,
-                          viewing_streaks=viewing_streaks)
-    except Exception as e:
-        print(f"Error loading timeline: {e}")
-        return "Error loading timeline data", 500
 
 
 @app.route('/timeline')
@@ -479,6 +540,81 @@ def timeline():
                           time_series_data=None,
                           viewing_streaks=None,
                           error="Unable to load timeline data. Please make sure you have some viewing history by marking movies as watched.")
+
+
+@app.route('/api/stats')
+def api_stats():
+    """Get current statistics as JSON for real-time updates."""
+    db = get_db()
+    
+    # Get all the stats
+    total_movies = db.execute('SELECT COUNT(*) as count FROM movies').fetchone()
+    total_ratings = db.execute('SELECT COUNT(*) as count FROM user_ratings').fetchone()
+    total_watches = db.execute('SELECT COUNT(*) as count FROM viewing_history').fetchone()
+    
+    unique_genres = db.execute('''
+        SELECT COUNT(DISTINCT genre) as count 
+        FROM movies m 
+        JOIN user_ratings r ON m.id = r.movie_id 
+        WHERE m.genre IS NOT NULL AND m.genre != ''
+    ''').fetchone()
+    
+    current_streak = db.execute('''
+        SELECT COUNT(DISTINCT DATE(watched_at)) as count 
+        FROM viewing_history 
+        WHERE watched_at >= date('now', '-30 days')
+    ''').fetchone()
+    
+    weekly_movies = db.execute('''
+        SELECT COUNT(*) as count 
+        FROM viewing_history 
+        WHERE watched_at >= date('now', '-7 days')
+    ''').fetchone()
+    
+    unique_decades = db.execute('''
+        SELECT COUNT(DISTINCT (year/10)*10) as count 
+        FROM movies m 
+        JOIN user_ratings r ON m.id = r.movie_id 
+        WHERE m.year IS NOT NULL
+    ''').fetchone()
+    
+    watchlist_completion = db.execute('''
+        SELECT 
+            CASE 
+                WHEN COUNT(w.id) = 0 THEN 0
+                ELSE ROUND((COUNT(vh.id) * 100.0) / COUNT(w.id))
+            END as completion
+        FROM watchlist w
+        LEFT JOIN viewing_history vh ON w.movie_id = vh.movie_id
+    ''').fetchone()
+    
+    # Rating distribution for chart
+    all_ratings = db.execute('SELECT rating FROM user_ratings').fetchall()
+    rating_distribution = [0, 0, 0, 0, 0]  # 0-1, 2-3, 4-5, 6-7, 8-10
+    
+    for rating in all_ratings:
+        r = float(rating['rating'])
+        if r <= 1:
+            rating_distribution[0] += 1
+        elif r <= 3:
+            rating_distribution[1] += 1
+        elif r <= 5:
+            rating_distribution[2] += 1
+        elif r <= 7:
+            rating_distribution[3] += 1
+        else:
+            rating_distribution[4] += 1
+    
+    return jsonify({
+        'totalMovies': total_watches['count'],
+        'uniqueGenres': unique_genres['count'],
+        'currentStreak': current_streak['count'],
+        'totalRatings': total_ratings['count'],
+        'weeklyMovies': weekly_movies['count'],
+        'uniqueDecades': unique_decades['count'],
+        'watchlistCompletion': watchlist_completion['completion'],
+        'ratingDistribution': rating_distribution
+    })
 
 
 @app.route('/movie/<int:movie_id>/save-from-api', methods=['POST'])

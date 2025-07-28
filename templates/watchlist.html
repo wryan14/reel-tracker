@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Watchlist</h1>
+<header class="page-header">
+    <h1>Your Watchlist</h1>
+    <p class="page-description">Movies you want to watch. Once you watch them, they'll move to your viewing history!</p>
+</header>
 
 <!-- Watchlist Progress -->
 {% if movies %}
@@ -48,10 +51,21 @@
     {% endfor %}
 {% else %}
     <section class="welcome-section">
-        <h2>Your watchlist is empty</h2>
-        <p>Start adding movies you want to watch!</p>
-        <div class="welcome-actions">
-            <a href="{{ url_for('search') }}" class="btn btn-primary">Search for Movies</a>
+        <div class="empty-state">
+            <h2>Your watchlist is empty</h2>
+            <p>Your watchlist is for movies you <strong>want to watch</strong> in the future.</p>
+            <div class="help-text">
+                <h3>How it works:</h3>
+                <ul>
+                    <li><strong>Search</strong> for movies and add them to your watchlist</li>
+                    <li><strong>Plan</strong> what to watch next</li>
+                    <li><strong>Mark as watched</strong> when you've seen them</li>
+                    <li>Movies move to your <strong>collection</strong> with ratings and history</li>
+                </ul>
+            </div>
+            <div class="welcome-actions">
+                <a href="{{ url_for('search') }}" class="btn btn-primary">Find Movies to Watch</a>
+            </div>
         </div>
     </section>
 {% endif %}

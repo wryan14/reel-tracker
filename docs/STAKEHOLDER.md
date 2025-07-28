@@ -1,8 +1,8 @@
-# MovieHive Stakeholder Documentation
+# ReelTracker Stakeholder Documentation
 
 ## Executive Summary
 
-MovieHive provides individuals with comprehensive movie tracking capabilities through a privacy-focused, locally-hosted web application. The system enables users to maintain organized watchlists, track viewing history, rate movies, and gain insights into their entertainment preferences through data visualizations.
+ReelTracker provides individuals with comprehensive movie tracking capabilities through a privacy-focused, locally-hosted web application. The system enables users to maintain organized watchlists, track viewing history, rate movies, and gain insights into their entertainment preferences through data visualizations.
 
 ## Business Value
 
@@ -27,7 +27,7 @@ MovieHive provides individuals with comprehensive movie tracking capabilities th
 - **Rapid Deployment**: Simple setup process for non-technical users
 
 ### Market Position
-MovieHive addresses the gap between feature-rich commercial platforms (with privacy concerns) and simple note-taking approaches (lacking analytics). The solution provides enterprise-level tracking capabilities without complexity or subscription requirements.
+ReelTracker addresses the gap between feature-rich commercial platforms (with privacy concerns) and simple note-taking approaches (lacking analytics). The solution provides enterprise-level tracking capabilities without complexity or subscription requirements.
 
 ## Return on Investment
 
@@ -125,7 +125,7 @@ MovieHive addresses the gap between feature-rich commercial platforms (with priv
 - **End Users**: Direct application users seeking entertainment organization
 - **Technical Administrators**: Individuals responsible for setup and maintenance
 - **Data Analysts**: Users interested in viewing pattern insights
-- **Decision Makers**: Those evaluating MovieHive adoption
+- **Decision Makers**: Those evaluating ReelTracker adoption
 
 ### Support Channels
 - **Technical Documentation**: Comprehensive setup and troubleshooting guides
@@ -133,4 +133,4 @@ MovieHive addresses the gap between feature-rich commercial platforms (with priv
 - **Development Team**: Direct contact for feature requests and issue resolution
 - **Update Notifications**: Automated alerts for new features and improvements
 
-MovieHive represents a strategic investment in personal data ownership and entertainment optimization, providing long-term value through comprehensive movie tracking without the privacy and cost concerns of commercial alternatives.
+ReelTracker represents a strategic investment in personal data ownership and entertainment optimization, providing long-term value through comprehensive movie tracking without the privacy and cost concerns of commercial alternatives.

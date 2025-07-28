@@ -1,76 +1,216 @@
-// MovieHive Gamification System - Subtle progress tracking and achievements
+// ReelTracker Gamification System - Subtle progress tracking and achievements
 
-// Achievement definitions
+// Achievement definitions - Enhanced for power users
 const achievements = {
+    // Movie Count Achievements - Higher thresholds
     firstMovie: {
         id: 'first-movie',
         name: 'First Steps',
         description: 'Watched your first movie',
         threshold: 1,
-        type: 'movies'
+        type: 'movies',
+        icon: ''
     },
     tenMovies: {
         id: 'ten-movies',
         name: 'Movie Buff',
         description: 'Watched 10 movies',
         threshold: 10,
-        type: 'movies'
+        type: 'movies',
+        icon: ''
     },
     fiftyMovies: {
         id: 'fifty-movies',
         name: 'Cinephile',
         description: 'Watched 50 movies',
         threshold: 50,
-        type: 'movies'
+        type: 'movies',
+        icon: ''
     },
     hundredMovies: {
-        id: 'hundred-movies',
+        id: 'hundred-movies',  
         name: 'Film Scholar',
         description: 'Watched 100 movies',
         threshold: 100,
-        type: 'movies'
+        type: 'movies',
+        icon: ''
     },
+    twoFiftyMovies: {
+        id: 'two-fifty-movies',
+        name: 'Movie Connoisseur',
+        description: 'Watched 250 movies',
+        threshold: 250,
+        type: 'movies',
+        icon: ''
+    },
+    fiveHundredMovies: {
+        id: 'five-hundred-movies',
+        name: 'Cinema Devotee',
+        description: 'Watched 500 movies',
+        threshold: 500,
+        type: 'movies',
+        icon: ''
+    },
+    thousandMovies: {
+        id: 'thousand-movies',
+        name: 'Film Legend',
+        description: 'Watched 1,000 movies - Incredible achievement!',
+        threshold: 1000,
+        type: 'movies',
+        icon: ''
+    },
+    fifteenHundredMovies: {
+        id: 'fifteen-hundred-movies',
+        name: 'Cinema Master',
+        description: 'Watched 1,500 movies',
+        threshold: 1500,
+        type: 'movies',
+        icon: ''
+    },
+    twoThousandMovies: {
+        id: 'two-thousand-movies',
+        name: 'Movie God',
+        description: 'Watched 2,000 movies - You are legendary!',
+        threshold: 2000,
+        type: 'movies',
+        icon: ''
+    },
+    
+    // Genre Achievements
     genreExplorer: {
         id: 'genre-explorer',
         name: 'Genre Explorer',
         description: 'Watched movies from 5 different genres',
         threshold: 5,
-        type: 'genres'
+        type: 'genres',
+        icon: ''
     },
+    genreSpecialist: {
+        id: 'genre-specialist',
+        name: 'Genre Specialist',
+        description: 'Watched movies from 10 different genres',
+        threshold: 10,
+        type: 'genres',
+        icon: ''
+    },
+    genreMaster: {
+        id: 'genre-master',
+        name: 'Genre Master',
+        description: 'Watched movies from 15 different genres',
+        threshold: 15,
+        type: 'genres',
+        icon: ''
+    },
+    
+    // Streak Achievements - Weekly Focus
     weekStreak: {
         id: 'week-streak',
-        name: 'Consistent Viewer',
-        description: 'Maintained a 7-day viewing streak',
+        name: 'Weekly Warrior',
+        description: 'Watched movies 7 days in a row',
         threshold: 7,
-        type: 'streak'
+        type: 'streak',
+        icon: ''
+    },
+    twoWeekStreak: {
+        id: 'two-week-streak',
+        name: 'Fortnight Fighter',
+        description: 'Watched movies 14 days in a row',
+        threshold: 14,
+        type: 'streak',
+        icon: ''
     },
     monthStreak: {
         id: 'month-streak',
-        name: 'Dedicated Watcher',
-        description: 'Maintained a 30-day viewing streak',
+        name: 'Monthly Master',
+        description: 'Watched movies 30 days in a row',
         threshold: 30,
-        type: 'streak'
+        type: 'streak',
+        icon: ''
     },
+    
+    // Weekly Viewing Badges
+    weeklyMarathon: {
+        id: 'weekly-marathon',
+        name: 'Weekend Warrior',
+        description: 'Watched 7+ movies in one week',
+        threshold: 7,
+        type: 'weekly',
+        icon: ''
+    },
+    weeklyBinge: {
+        id: 'weekly-binge',
+        name: 'Binge Master',
+        description: 'Watched 10+ movies in one week',
+        threshold: 10,
+        type: 'weekly',
+        icon: ''
+    },
+    
+    // Rating Achievements
     ratingConsistency: {
         id: 'rating-consistency',
         name: 'Critical Eye',
         description: 'Rated 20 movies',
         threshold: 20,
-        type: 'ratings'
+        type: 'ratings',
+        icon: ''
+    },
+    ratingPrecision: {
+        id: 'rating-precision',
+        name: 'Precise Critic',
+        description: 'Rated 100 movies',
+        threshold: 100,
+        type: 'ratings',
+        icon: ''
+    },
+    ratingMaster: {
+        id: 'rating-master',
+        name: 'Master Critic',
+        description: 'Rated 500 movies',
+        threshold: 500,
+        type: 'ratings',
+        icon: ''
+    },
+    
+    // Decade Explorer
+    decadeExplorer: {
+        id: 'decade-explorer',
+        name: 'Time Traveler',
+        description: 'Watched movies from 5 different decades',
+        threshold: 5,
+        type: 'decades',
+        icon: ''
+    },
+    
+    // Special Achievements
+    completionist: {
+        id: 'completionist',
+        name: 'The Completionist',
+        description: 'Watched everything on your watchlist',
+        threshold: 1,
+        type: 'special',
+        icon: ''
     }
 };
 
-// User level calculation
+// User level calculation - Enhanced for power users
 function calculateUserLevel(totalMovies) {
-    if (totalMovies < 10) return { level: 1, name: 'Newcomer' };
-    if (totalMovies < 25) return { level: 2, name: 'Regular' };
-    if (totalMovies < 50) return { level: 3, name: 'Enthusiast' };
-    if (totalMovies < 100) return { level: 4, name: 'Aficionado' };
-    if (totalMovies < 250) return { level: 5, name: 'Expert' };
-    return { level: 6, name: 'Master' };
+    if (totalMovies < 10) return { level: 1, name: 'Newcomer', nextThreshold: 10 };
+    if (totalMovies < 25) return { level: 2, name: 'Regular', nextThreshold: 25 };
+    if (totalMovies < 50) return { level: 3, name: 'Enthusiast', nextThreshold: 50 };
+    if (totalMovies < 100) return { level: 4, name: 'Aficionado', nextThreshold: 100 };
+    if (totalMovies < 250) return { level: 5, name: 'Expert', nextThreshold: 250 };
+    if (totalMovies < 500) return { level: 6, name: 'Connoisseur', nextThreshold: 500 };
+    if (totalMovies < 750) return { level: 7, name: 'Devotee', nextThreshold: 750 };
+    if (totalMovies < 1000) return { level: 8, name: 'Scholar', nextThreshold: 1000 };
+    if (totalMovies < 1500) return { level: 9, name: 'Legend', nextThreshold: 1500 };
+    if (totalMovies < 2000) return { level: 10, name: 'Master', nextThreshold: 2000 };
+    if (totalMovies < 3000) return { level: 11, name: 'Grandmaster', nextThreshold: 3000 };
+    if (totalMovies < 5000) return { level: 12, name: 'Cinema God', nextThreshold: 5000 };
+    return { level: 13, name: 'Transcendent', nextThreshold: null };
 }
 
-// Show achievement toast
+// Show achievement toast with enhanced styling
 function showAchievement(achievement) {
     const existingToast = document.querySelector('.achievement-toast');
     if (existingToast) {
@@ -81,8 +221,12 @@ function showAchievement(achievement) {
     toast.className = 'achievement-toast';
     toast.innerHTML = `
         <div class="achievement-content">
-            <strong>${achievement.name}</strong>
-            <p>${achievement.description}</p>
+            <div class="achievement-icon">${achievement.icon || ''}</div>
+            <div class="achievement-text">
+                <strong>Achievement Unlocked!</strong>
+                <h3>${achievement.name}</h3>
+                <p>${achievement.description}</p>
+            </div>
         </div>
     `;
     
@@ -93,21 +237,21 @@ function showAchievement(achievement) {
         toast.classList.add('show');
     }, 100);
     
-    // Auto-hide after 5 seconds
+    // Auto-hide after 6 seconds for more complex achievements
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
             toast.remove();
         }, 300);
-    }, 5000);
+    }, 6000);
 }
 
-// Check for new achievements
+// Check for new achievements - Enhanced with weekly and decade tracking
 function checkAchievements(stats) {
-    const unlockedAchievements = JSON.parse(localStorage.getItem('moviehive_achievements') || '[]');
+    const unlockedAchievements = JSON.parse(localStorage.getItem('reeltracker_achievements') || '[]');
     const newAchievements = [];
     
-    // Check movie count achievements
+    // Check all achievement types
     Object.values(achievements).forEach(achievement => {
         if (unlockedAchievements.includes(achievement.id)) return;
         
@@ -134,6 +278,21 @@ function checkAchievements(stats) {
                     unlocked = true;
                 }
                 break;
+            case 'weekly':
+                if (stats.weeklyMovies >= achievement.threshold) {
+                    unlocked = true;
+                }
+                break;
+            case 'decades':
+                if (stats.uniqueDecades >= achievement.threshold) {
+                    unlocked = true;
+                }
+                break;
+            case 'special':
+                if (achievement.id === 'completionist' && stats.watchlistCompletion === 100) {
+                    unlocked = true;
+                }
+                break;
         }
         
         if (unlocked) {
@@ -144,13 +303,13 @@ function checkAchievements(stats) {
     
     // Save updated achievements
     if (newAchievements.length > 0) {
-        localStorage.setItem('moviehive_achievements', JSON.stringify(unlockedAchievements));
+        localStorage.setItem('reeltracker_achievements', JSON.stringify(unlockedAchievements));
         
-        // Show achievement notifications
+        // Show achievement notifications with staggered timing
         newAchievements.forEach((achievement, index) => {
             setTimeout(() => {
                 showAchievement(achievement);
-            }, index * 1000);
+            }, index * 1500); // Increased delay for better UX
         });
     }
     
@@ -186,24 +345,35 @@ function updateProgressBars() {
     }
 }
 
-// Update user level display
+// Update user level display - Enhanced for higher levels
 function updateUserLevel(totalMovies) {
     const levelDisplay = document.querySelector('.user-level');
     if (!levelDisplay) return;
     
     const userLevel = calculateUserLevel(totalMovies);
-    const nextLevelThreshold = userLevel.level < 6 ? [10, 25, 50, 100, 250][userLevel.level - 1] : null;
+    const progress = userLevel.nextThreshold ? (totalMovies / userLevel.nextThreshold) * 100 : 100;
     
     levelDisplay.innerHTML = `
-        <span class="level-badge">Level ${userLevel.level}: ${userLevel.name}</span>
-        ${nextLevelThreshold ? `
-            <div class="level-progress">
-                <span class="meta">${totalMovies} / ${nextLevelThreshold} movies to next level</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${(totalMovies / nextLevelThreshold) * 100}%"></div>
+        <div class="level-info">
+            <span class="level-badge level-${userLevel.level}">Level ${userLevel.level}: ${userLevel.name}</span>
+            ${userLevel.nextThreshold ? `
+                <div class="level-progress">
+                    <div class="progress-text">
+                        <span class="current">${totalMovies.toLocaleString()}</span>
+                        <span class="separator">/</span>
+                        <span class="target">${userLevel.nextThreshold.toLocaleString()}</span>
+                        <span class="label">movies to next level</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
+                    </div>
                 </div>
-            </div>
-        ` : '<span class="meta">Maximum level reached!</span>'}
+            ` : `
+                <div class="max-level">
+                    <span class="meta">Transcendent Level Achieved! ${totalMovies.toLocaleString()} movies watched</span>
+                </div>
+            `}
+        </div>
     `;
 }
 
@@ -232,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Export for use in other scripts
-window.MovieHiveGamification = {
+window.ReelTrackerGamification = {
     showAchievement,
     checkAchievements,
     updateProgressBars,

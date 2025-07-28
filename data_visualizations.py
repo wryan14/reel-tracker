@@ -1,4 +1,4 @@
-"""Data visualization components for MovieHive.
+"""Data visualization components for ReelTracker.
 
 Generates Chart.js compatible data following minimalist design principles.
 """
@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 
-def get_rating_distribution(db_path: str = 'moviehive.db') -> Dict[str, Any]:
+def get_rating_distribution(db_path: str = 'reeltracker.db') -> Dict[str, Any]:
     """Generate rating distribution data for visualization."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -55,7 +55,7 @@ def get_rating_distribution(db_path: str = 'moviehive.db') -> Dict[str, Any]:
     }
 
 
-def get_genre_breakdown(db_path: str = 'moviehive.db') -> Dict[str, Any]:
+def get_genre_breakdown(db_path: str = 'reeltracker.db') -> Dict[str, Any]:
     """Generate genre distribution from watched movies."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -95,7 +95,7 @@ def get_genre_breakdown(db_path: str = 'moviehive.db') -> Dict[str, Any]:
     }
 
 
-def get_viewing_timeline(db_path: str = 'moviehive.db', days: int = 30) -> Dict[str, Any]:
+def get_viewing_timeline(db_path: str = 'reeltracker.db', days: int = 30) -> Dict[str, Any]:
     """Generate viewing activity over time."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -136,7 +136,7 @@ def get_viewing_timeline(db_path: str = 'moviehive.db', days: int = 30) -> Dict[
     }
 
 
-def get_rating_vs_popularity(db_path: str = 'moviehive.db') -> Dict[str, Any]:
+def get_rating_vs_popularity(db_path: str = 'reeltracker.db') -> Dict[str, Any]:
     """Compare personal ratings with movie popularity (if available)."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -183,7 +183,7 @@ def get_rating_vs_popularity(db_path: str = 'moviehive.db') -> Dict[str, Any]:
     }
 
 
-def get_watchlist_priority_breakdown(db_path: str = 'moviehive.db') -> Dict[str, Any]:
+def get_watchlist_priority_breakdown(db_path: str = 'reeltracker.db') -> Dict[str, Any]:
     """Analyze watchlist by priority levels."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -217,7 +217,7 @@ def get_watchlist_priority_breakdown(db_path: str = 'moviehive.db') -> Dict[str,
     }
 
 
-def get_monthly_stats(db_path: str = 'moviehive.db') -> Dict[str, Any]:
+def get_monthly_stats(db_path: str = 'reeltracker.db') -> Dict[str, Any]:
     """Get monthly viewing statistics."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row

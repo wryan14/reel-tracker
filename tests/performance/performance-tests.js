@@ -1,5 +1,5 @@
 /**
- * Performance Testing Suite for MovieHive
+ * Performance Testing Suite for ReelTracker
  * Tests page load times, API response caching, and Core Web Vitals
  */
 

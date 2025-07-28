@@ -1,234 +1,383 @@
-# MovieHive Technical Documentation
+# ReelTracker Technical Documentation
 
 ## Architecture Overview
 
-MovieHive is a single-file Flask application following cognitive load minimization principles. The architecture prioritizes simplicity and maintainability over premature optimization.
+ReelTracker is a Flask-based web application designed for personal movie tracking with a focus on simplicity, performance, and offline capability.
 
-### System Components
+### System Architecture
 
-- **Flask Application** (`app.py`): Core web server with integrated database operations
-- **TMDB Service** (`api_service.py`): Rate-limited API integration with caching
-- **Data Visualizations** (`data_visualizations.py`): Chart.js data generation
-- **SQLite Database** (`moviehive.db`): Local storage for all user data
-- **Static Assets**: Minimal CSS/JS following Tufte design principles
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Web Browser   │ ── │  Flask App       │ ── │ SQLite Database │
+│                 │    │  (app.py)        │    │ (reeltracker.db)│
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │                       │
+         │                        │                       │
+         └────── Static Assets ───┼─── TMDB API ─────────┘
+              (CSS/JS/Images)         (api_service.py)
+```
 
-## Development Setup
+### Core Components
 
-### Prerequisites
-- Python 3.8 or higher
-- TMDB API key (optional but recommended)
+#### 1. Flask Application (`app.py`)
+- **Purpose**: Main application entry point and route handling
+- **Key Features**:
+  - RESTful API endpoints for movie operations
+  - Template rendering with Jinja2
+  - Session management and caching
+  - Database connection management
+  - Error handling and logging
 
-### Installation
+#### 2. API Service (`api_service.py`)
+- **Purpose**: TMDB API integration with rate limiting and caching
+- **Key Features**:
+  - Rate-limited API requests (35 requests/minute)
+  - Response caching with configurable TTL
+  - Fallback to mock service when API unavailable
+  - Genre mapping and movie enrichment
+  - Poster URL generation
+
+#### 3. Data Visualizations (`data_visualizations.py`)
+- **Purpose**: Generate chart data for statistics dashboard
+- **Key Features**:
+  - Rating distribution calculations
+  - Genre breakdown analysis
+  - Viewing timeline data
+  - Monthly statistics aggregation
+  - Chart.js compatible data formatting
+
+#### 4. Time Series Service (`time_series_service.py`)
+- **Purpose**: Advanced analytics and viewing pattern analysis
+- **Key Features**:
+  - Extended timeline analysis (daily, weekly, monthly)
+  - Viewing streak calculations
+  - Habit consistency scoring
+  - Genre evolution tracking
+  - Peak viewing time analysis
+
+### Database Schema
+
+#### Tables Structure
+
+```sql
+-- Core movie information
+CREATE TABLE movies (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    year INTEGER,
+    director TEXT,
+    genre TEXT,
+    plot TEXT,
+    poster_url TEXT,
+    imdb_id TEXT UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User's personal watchlist
+CREATE TABLE watchlist (
+    id INTEGER PRIMARY KEY,
+    movie_id INTEGER NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    priority INTEGER DEFAULT 0,
+    notes TEXT,
+    FOREIGN KEY (movie_id) REFERENCES movies(id),
+    UNIQUE(movie_id)
+);
+
+-- User ratings and reviews
+CREATE TABLE user_ratings (
+    id INTEGER PRIMARY KEY,
+    movie_id INTEGER NOT NULL,
+    rating REAL NOT NULL CHECK(rating >= 0 AND rating <= 10),
+    review TEXT,
+    rated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (movie_id) REFERENCES movies(id),
+    UNIQUE(movie_id)
+);
+
+-- Viewing history tracking
+CREATE TABLE viewing_history (
+    id INTEGER PRIMARY KEY,
+    movie_id INTEGER NOT NULL,
+    watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    FOREIGN KEY (movie_id) REFERENCES movies(id)
+);
+```
+
+#### Indexes for Performance
+- `idx_movies_title` - Optimizes movie title searches
+- `idx_movies_year` - Speeds up year-based filtering
+- `idx_watchlist_priority` - Optimizes watchlist priority ordering
+- `idx_ratings_rating` - Accelerates rating-based queries
+
+### API Endpoints
+
+#### Core Application Routes
+
+| Method | Endpoint | Purpose | Parameters |
+|--------|----------|---------|------------|
+| GET | `/` | Home page with recent activity | - |
+| GET | `/search` | Movie search interface | `q` (query), `source` (api/local) |
+| GET | `/movie/<id>` | Movie details page | `source` (optional) |
+| GET | `/stats` | Statistics dashboard | - |
+| GET | `/timeline` | Time series analysis | - |
+| GET | `/watchlist` | Personal watchlist | - |
+
+#### REST API Endpoints
+
+| Method | Endpoint | Purpose | Request Body |
+|--------|----------|---------|--------------|
+| GET | `/api/stats` | JSON statistics for real-time updates | - |
+| POST | `/movie/<id>/rate` | Rate a movie | `rating`, `review` |
+| POST | `/movie/<id>/watched` | Mark movie as watched | `watched_date`, `notes` |
+| POST | `/movie/<id>/add-watchlist` | Add to watchlist | - |
+| POST | `/movie/<id>/remove-watchlist` | Remove from watchlist | - |
+| POST | `/movie/<id>/save-from-api` | Save TMDB movie to local DB | - |
+
+### Frontend Architecture
+
+#### Technology Stack
+- **HTML5**: Semantic markup with accessibility features
+- **CSS3**: Modern styling with Grid and Flexbox
+- **Vanilla JavaScript**: No framework dependencies
+- **Chart.js**: Data visualization library
+- **Progressive Enhancement**: Works without JavaScript
+
+#### Key JavaScript Modules
+
+```javascript
+// Gamification system (static/js/gamification.js)
+- Achievement tracking and notifications
+- User level calculations
+- Progress bar updates
+- Real-time stat monitoring
+
+// Real-time updates (static/js/real-time-updates.js)
+- API polling for fresh statistics
+- UI update coordination
+- Chart refresh handling
+- Achievement unlock notifications
+
+// Chart configuration (static/js/chart-config.js)
+- Chart.js setup and theming
+- Responsive chart configuration
+- Data formatting utilities
+- Accessibility enhancements
+```
+
+### Performance Optimizations
+
+#### Backend Optimizations
+1. **Response Caching**: 
+   - `@cache_response()` decorator for expensive operations
+   - TTL-based cache invalidation
+   - Memory-based caching for development
+
+2. **Database Optimizations**:
+   - Strategic indexes on commonly queried columns
+   - Query optimization for statistics calculations
+   - Connection pooling and reuse
+
+3. **API Rate Limiting**:
+   - TMDB API request throttling
+   - Exponential backoff for failed requests
+   - Response caching to minimize API calls
+
+#### Frontend Optimizations
+1. **Asset Optimization**:
+   - Minified CSS and JavaScript
+   - Efficient image loading
+   - Lazy loading for non-critical content
+
+2. **Progressive Enhancement**:
+   - Core functionality works without JavaScript
+   - Enhanced features layer on top
+   - Graceful degradation for older browsers
+
+3. **Real-time Updates**:
+   - Efficient polling strategies
+   - Batched DOM updates
+   - Optimistic UI updates
+
+### Configuration Management
+
+#### Environment Variables
+```env
+# Database Configuration
+DATABASE=reeltracker.db
+
+# TMDB API Configuration (Optional)
+TMDB_API_KEY=your_api_key_here
+TMDB_ACCESS_TOKEN=your_access_token_here
+
+# Flask Configuration
+SECRET_KEY=your-secret-key-for-sessions
+FLASK_ENV=development
+FLASK_DEBUG=True
+```
+
+#### Feature Flags
+The application gracefully handles missing dependencies:
+- TMDB API unavailable → Mock service activated
+- Chart.js not loaded → Fallback to text-based stats
+- JavaScript disabled → Core functionality still works
+
+### Testing Strategy
+
+#### Test Categories
+1. **Unit Tests** (`tests/`)
+   - Individual function testing
+   - Database operation validation
+   - API service mocking
+
+2. **Integration Tests**
+   - End-to-end workflow testing
+   - Database schema validation
+   - API integration testing
+
+3. **Performance Tests**
+   - Response time benchmarking
+   - Memory usage profiling
+   - Concurrent user simulation
+
+4. **Accessibility Tests**
+   - WCAG compliance validation
+   - Screen reader compatibility
+   - Keyboard navigation testing
+
+#### Running Tests
 ```bash
-# Clone and navigate to project
-cd reel-tracker
+# All tests
+python -m pytest tests/ -v
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Specific categories
+python -m pytest tests/api/ -v
+python -m pytest tests/database/ -v
+python -m pytest tests/performance/ -v
+python -m pytest tests/accessibility/ -v
 
-# Install dependencies
+# Coverage report
+python -m pytest --cov=. --cov-report=html
+```
+
+### Deployment
+
+#### Local Development
+```bash
+# Setup
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-
-# Configure environment
 cp .env.example .env
-# Edit .env with your TMDB API key
 
-# Initialize database (automatic on first run)
-python3 app.py
+# Run
+python app.py
 ```
 
-### Development Commands
-```bash
-# Start development server
-python3 app.py
+#### Production Considerations
+1. **Security**:
+   - Change default secret key
+   - Use HTTPS in production
+   - Regular dependency updates
+   - Input validation and sanitization
 
-# Run tests
-cd tests && npm test
+2. **Performance**:
+   - Use production WSGI server (Gunicorn)
+   - Configure proper caching headers
+   - Database backup strategy
+   - Monitor resource usage
 
-# Check database schema
-sqlite3 moviehive.db ".schema"
+3. **Monitoring**:
+   - Application logging
+   - Error tracking
+   - Performance monitoring
+   - Database integrity checks
 
-# Reset database (WARNING: deletes all data)
-rm moviehive.db && python3 app.py
-```
+### Troubleshooting
 
-## Database Schema
+#### Common Issues
 
-### Tables
-- **movies**: Core movie metadata (title, year, director, genre, plot)
-- **watchlist**: User's prioritized movie queue with notes
-- **user_ratings**: Personal ratings (0-10) with optional reviews
-- **viewing_history**: Track when movies were watched
-
-### Indexes
-Optimized for common queries: title search, rating lookups, date ranges
-
-## API Integration
-
-### TMDB Service Features
-- **Rate Limiting**: 35 requests/second (conservative)
-- **Caching**: 5 minutes (search), 1 hour (details), 24 hours (config)
-- **Error Handling**: Graceful fallback to local database
-- **Mock Service**: Development mode when API key unavailable
-
-### Endpoints Used
-- `/search/movie`: Real-time movie search
-- `/movie/{id}`: Detailed movie information
-- `/configuration`: Image URL generation
-- `/movie/popular`: Discovery features
-
-## Performance Optimization
-
-### Caching Strategy
-- **Application Cache**: In-memory caching with TTL
-- **API Cache**: Tiered caching based on data volatility
-- **Database Queries**: Indexed for common access patterns
-
-### Response Times
-- **Cached Searches**: <100ms
-- **Fresh API Calls**: <500ms (TMDB SLA)
-- **Local Database**: <50ms
-
-## Security Considerations
-
-### API Key Management
-- Environment variable storage only
-- No hardcoded credentials
-- Rate limiting to prevent quota exhaustion
-
-### Input Validation
-- SQL injection prevention via parameterized queries
-- XSS protection through template escaping
-- CSRF protection via Flask-WTF (if forms added)
-
-## Accessibility Implementation
-
-### WCAG 2.1 AA Compliance
-- **Color Contrast**: 4.5:1 minimum ratio maintained
-- **Keyboard Navigation**: All interactive elements accessible
-- **Screen Readers**: Semantic HTML with ARIA labels
-- **Touch Targets**: 44px minimum (48px preferred)
-
-### Testing Suite
-Located in `/tests/` with automated accessibility validation:
-- **axe-core integration**: Automated accessibility testing
-- **Manual checklists**: WCAG compliance verification
-- **Mobile testing**: Responsive design validation
-
-## Troubleshooting
-
-### Common Issues
-
-**Application won't start**
-```bash
-# Check Python version
-python3 --version  # Must be 3.8+
-
-# Verify dependencies
-pip list | grep Flask
-
-# Check port availability
-lsof -i :5000
-```
-
-**Database errors**
+**Database Issues**:
 ```bash
 # Reset database
-rm moviehive.db
-
-# Check permissions
-ls -la moviehive.db
-
-# Manual schema check
-sqlite3 moviehive.db ".tables"
+rm reeltracker.db
+python app.py  # Will recreate schema
 ```
 
-**API integration failures**
+**TMDB API Issues**:
 ```bash
-# Verify API key
-echo $TMDB_API_KEY
+# Check API key
+curl "https://api.themoviedb.org/3/movie/550?api_key=YOUR_KEY"
 
-# Test API connectivity
-curl "https://api.themoviedb.org/3/configuration?api_key=YOUR_KEY"
-
-# Check rate limiting
-grep "rate limit" app.log
+# Verify environment variables
+python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('TMDB_API_KEY'))"
 ```
 
-### Performance Issues
-
-**Slow responses**
-- Check database file size (>100MB may need optimization)
-- Monitor API cache hit rates
-- Verify network connectivity for API calls
-
-**Memory usage**
-- Application cache limited to 1000 entries
-- Restart application if memory exceeds 100MB
-
-## Deployment
-
-### Development
-Application runs on `http://localhost:5000` with debug mode enabled.
-
-### Production Considerations
-- Use production WSGI server (Gunicorn, uWSGI)
-- Set `FLASK_ENV=production`
-- Configure proper logging
-- Implement backup strategy for SQLite database
-- Consider read replicas for high usage
-
-## Testing Strategy
-
-### Test Coverage
-- **Unit Tests**: Core functionality validation
-- **Integration Tests**: API service integration
-- **Accessibility Tests**: WCAG compliance verification
-- **Performance Tests**: Response time monitoring
-
-### Running Tests
+**Performance Issues**:
 ```bash
-cd tests
-npm install  # Install test dependencies
-npm test     # Run full test suite
-npm run accessibility  # Accessibility only
-npm run performance   # Performance benchmarks
+# Clear cache
+# Restart application
+
+# Check database size
+sqlite3 reeltracker.db "SELECT COUNT(*) FROM movies;"
+
+# Analyze slow queries
+sqlite3 reeltracker.db ".timer on" "SELECT * FROM viewing_history LIMIT 100;"
 ```
 
-## Code Standards
+#### Debug Mode
+Enable Flask debug mode in `.env`:
+```env
+FLASK_ENV=development
+FLASK_DEBUG=True
+```
 
-### Python Guidelines
-- **Cognitive Load Minimization**: Single file start, minimal abstractions
-- **Information Density**: Compact logic with clear naming
-- **Essential Functions**: No premature optimization
-- **Documentation**: Minimal but complete docstrings
+This enables:
+- Detailed error pages
+- Automatic reloading
+- Debug toolbar
+- Extended logging
 
-### Frontend Standards
-- **Tufte Principles**: Maximum data-ink ratio
-- **Mobile First**: Responsive design priority
-- **System Fonts**: No web font dependencies
-- **Progressive Enhancement**: Core functionality without JavaScript
+### Security Considerations
 
-## Monitoring
+#### Input Validation
+- SQL injection prevention through parameterized queries
+- XSS prevention through template escaping
+- CSRF protection via Flask-WTF (if implemented)
+- Input sanitization for all user data
 
-### Health Checks
-- Application startup logs
-- Database connection status
-- API service availability
-- Response time metrics
+#### Data Protection
+- Local-only data storage (no cloud dependencies)
+- Optional API key usage
+- No user tracking or analytics
+- Secure session management
 
-### Key Metrics
-- User engagement (ratings, watchlist additions)
-- API usage and cache efficiency
-- Database growth and query performance
-- Accessibility compliance maintenance
+### Future Enhancements
 
-## Support
+#### Planned Features
+1. **Advanced Analytics**:
+   - Machine learning recommendations
+   - Viewing pattern predictions
+   - Social features (optional)
 
-For technical issues:
-1. Check this documentation
-2. Review application logs
-3. Verify environment configuration
-4. Test with minimal setup
-5. Contact development team with specific error messages
+2. **Performance Improvements**:
+   - Redis caching layer
+   - Database query optimization
+   - CDN integration for static assets
+
+3. **User Experience**:
+   - Mobile app (PWA)
+   - Offline synchronization
+   - Advanced search filters
+   - Bulk operations
+
+#### Technical Debt
+- Refactor large functions in `app.py`
+- Add comprehensive error handling
+- Implement proper logging system
+- Add API rate limiting middleware
+
+---
+
+For questions about implementation details or architectural decisions, please refer to the inline code comments or create an issue in the repository.

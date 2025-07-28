@@ -1,4 +1,4 @@
-# MovieHive QA Critical Findings & Testing Framework
+# ReelTracker QA Critical Findings & Testing Framework
 
 ## 🚨 CRITICAL ACCESSIBILITY REQUIREMENTS
 

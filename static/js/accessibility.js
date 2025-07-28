@@ -1,5 +1,5 @@
 /**
- * Accessibility enhancements for MovieHive
+ * Accessibility enhancements for ReelTracker
  * Following WCAG 2.1 AA guidelines
  */
 

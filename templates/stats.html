@@ -15,7 +15,14 @@
 </nav>
 
 <!-- User Level and Progress -->
-<div class="user-level" data-total-movies="{{ total_movies }}"></div>
+<div class="user-level" 
+     data-total-movies="{{ total_watches.count }}"
+     data-unique-genres="{{ unique_genres.count }}"
+     data-current-streak="{{ current_streak.count }}"
+     data-total-ratings="{{ total_ratings.count }}"
+     data-weekly-movies="{{ weekly_movies.count }}"
+     data-unique-decades="{{ unique_decades.count }}"
+     data-watchlist-completion="{{ watchlist_completion.completion }}"></div>
 
 <!-- Overview Stats Grid -->
 <section id="overview-section" aria-labelledby="overview-stats">

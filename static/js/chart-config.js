@@ -1,5 +1,5 @@
 /**
- * Chart.js configuration for MovieHive statistics
+ * Chart.js configuration for ReelTracker statistics
  * Minimalist design following Tufte's principles
  */
 
@@ -346,7 +346,7 @@
     }
     
     // Expose functions globally for use in templates
-    window.MovieHiveCharts = {
+    window.ReelTrackerCharts = {
         createRatingChart,
         createGenreChart,
         createTimelineChart,

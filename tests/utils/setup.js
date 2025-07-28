@@ -1,5 +1,5 @@
 /**
- * Test Setup and Utilities for MovieHive Test Suite
+ * Test Setup and Utilities for ReelTracker Test Suite
  * Global test configuration and helper functions
  */
 
@@ -305,4 +305,4 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-console.log('MovieHive test suite initialized with accessibility and performance helpers');
+console.log('ReelTracker test suite initialized with accessibility and performance helpers');

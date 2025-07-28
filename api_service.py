@@ -1,4 +1,4 @@
-"""TMDB API integration service for MovieHive.
+"""TMDB API integration service for ReelTracker.
 
 Implements rate limiting, caching, and error handling for movie data.
 """
@@ -20,6 +20,7 @@ class TMDBService:
     def __init__(self):
         self.api_key = os.environ.get('TMDB_API_KEY')
         self.access_token = os.environ.get('TMDB_ACCESS_TOKEN')
+        self.genre_cache = None
         
         if not self.api_key and not self.access_token:
             raise ValueError("TMDB_API_KEY or TMDB_ACCESS_TOKEN environment variable required")
@@ -158,6 +159,39 @@ class TMDBService:
         config = self.get_configuration()
         base_url = config.get("images", {}).get("base_url", self.IMAGE_BASE_URL)
         return f"{base_url}/{size}{poster_path}"
+    
+    def get_genre_mapping(self) -> Dict[int, str]:
+        """Get mapping of genre IDs to genre names."""
+        if self.genre_cache is not None:
+            return self.genre_cache
+        
+        def fetch_genres():
+            return self._make_request("genre/movie/list")
+        
+        cache_key = "genre_mapping"
+        result = self._get_cached_or_fetch(cache_key, 'config', fetch_genres)
+        
+        if result and 'genres' in result:
+            self.genre_cache = {genre['id']: genre['name'] for genre in result['genres']}
+        else:
+            # Fallback genre mapping
+            self.genre_cache = {
+                28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy',
+                80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family',
+                14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music',
+                9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction',
+                10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western'
+            }
+        
+        return self.genre_cache
+    
+    def get_movie_credits(self, movie_id: int) -> Optional[Dict]:
+        """Get movie credits including cast and crew."""
+        def fetch():
+            return self._make_request(f"movie/{movie_id}/credits")
+        
+        cache_key = f"credits_{movie_id}"
+        return self._get_cached_or_fetch(cache_key, 'movie', fetch)
     
     def enrich_movie_data(self, movie_data: Dict) -> Dict:
         """Enrich basic movie data with additional details."""

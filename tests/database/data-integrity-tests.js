@@ -1,5 +1,5 @@
 /**
- * Database Integrity and Operations Test Suite for MovieHive
+ * Database Integrity and Operations Test Suite for ReelTracker
  * Tests ACID compliance, concurrent operations, and data validation
  */
 
@@ -529,7 +529,7 @@ describe('Backup and Recovery Tests', () => {
     // For SQLite, this might involve copying the database file
     // For PostgreSQL/MySQL, this would use pg_dump/mysqldump
     
-    const backupPath = '/tmp/moviehive_backup.sql';
+    const backupPath = '/tmp/reeltracker_backup.sql';
     
     // Mock backup process
     const backupSuccessful = true; // Would be actual backup result

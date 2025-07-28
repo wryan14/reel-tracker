@@ -1,5 +1,5 @@
 /**
- * API Testing Suite for MovieHive
+ * API Testing Suite for ReelTracker
  * Tests error handling, rate limiting, and API reliability
  */
 

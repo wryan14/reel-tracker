@@ -1,7 +1,7 @@
-# MovieHive QA Testing Plan
+# ReelTracker QA Testing Plan
 
 ## Overview
-Comprehensive testing strategy for MovieHive focusing on accessibility, mobile responsiveness, API reliability, database integrity, and performance optimization.
+Comprehensive testing strategy for ReelTracker focusing on accessibility, mobile responsiveness, API reliability, database integrity, and performance optimization.
 
 ## Testing Philosophy
 - **Accessibility First**: WCAG 2.1 AA compliance mandatory

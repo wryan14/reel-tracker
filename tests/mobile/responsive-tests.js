@@ -1,5 +1,5 @@
 /**
- * Mobile Responsiveness Test Suite for MovieHive
+ * Mobile Responsiveness Test Suite for ReelTracker
  * Tests touch targets, viewport behavior, and mobile UX
  */
 

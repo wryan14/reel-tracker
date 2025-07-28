@@ -1,5 +1,5 @@
 /**
- * WCAG 2.1 AA Compliance Test Suite for MovieHive
+ * WCAG 2.1 AA Compliance Test Suite for ReelTracker
  * Automated accessibility testing using axe-core
  */
 

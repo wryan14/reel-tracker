@@ -1,7 +1,7 @@
 {
-  "name": "moviehive-tests",
+  "name": "reeltracker-tests",
   "version": "1.0.0",
-  "description": "Comprehensive test suite for MovieHive application",
+  "description": "Comprehensive test suite for ReelTracker application",
   "main": "index.js",
   "scripts": {
     "test": "jest",

@@ -44,10 +44,19 @@
     <!-- Save API Movie to Local Database -->
     {% if movie.source == 'tmdb' %}
     <section class="api-actions">
+        <div class="collection-notice">
+            <h3>Add to Your Collection</h3>
+            <p>This movie is from our database but not yet in your personal collection. Save it to:</p>
+            <ul class="feature-list">
+                <li>Add ratings and reviews</li>
+                <li>Track viewing history with custom dates</li>  
+                <li>Add to your watchlist</li>
+                <li>Earn achievements and badges</li>
+            </ul>
+        </div>
         <form method="post" action="{{ url_for('save_movie_from_api', movie_id=movie.id) }}">
-            <button type="submit" class="btn-primary">Save to My Collection</button>
+            <button type="submit" class="btn-primary btn-large">Save to My Collection</button>
         </form>
-        <p class="meta">Save this movie to enable rating, watchlist, and viewing history features.</p>
     </section>
     {% endif %}
     
@@ -128,15 +137,19 @@
     
     <!-- Watchlist Section -->
     <section aria-labelledby="watchlist-section">
-        <h2 id="watchlist-section">Watchlist</h2>
+        <h2 id="watchlist-section">Want to Watch?</h2>
+        <p class="section-explanation">Your watchlist contains movies you plan to watch in the future.</p>
         {% if in_watchlist %}
-            <p class="success" role="status">✓ In your watchlist</p>
+            <div class="watchlist-status">
+                <p class="success" role="status">On your watchlist</p>
+                <p class="meta">Added on {{ in_watchlist.added_at.split()[0] if in_watchlist.added_at else 'Unknown date' }}</p>
+            </div>
             <form method="post" action="{{ url_for('remove_from_watchlist', movie_id=movie.id) }}">
-                <button type="submit" class="secondary">Remove from Watchlist</button>
+                <button type="submit" class="btn-secondary">Remove from Watchlist</button>
             </form>
         {% else %}
             <form method="post" action="{{ url_for('add_to_watchlist', movie_id=movie.id) }}">
-                <button type="submit">Add to Watchlist</button>
+                <button type="submit" class="btn-outline">Add to Watchlist</button>
             </form>
         {% endif %}
     </section>
@@ -144,18 +157,49 @@
     <!-- Viewing History Section -->
     <section aria-labelledby="viewing-history">
         <h2 id="viewing-history">Viewing History</h2>
-        <p class="meta">
-            Watched {{ watch_count.count }} time(s)
-            {% if watch_count.count == 1 %}
-                <span class="sr-only">once</span>
-            {% elif watch_count.count > 1 %}
-                <span class="sr-only">{{ watch_count.count }} times</span>
-            {% endif %}
-        </p>
+        <p class="section-explanation">Track when you watched this movie. Perfect for building your complete viewing history!</p>
+        <div class="viewing-stats">
+            <p class="watch-count">
+                {% if watch_count.count == 0 %}
+                    <span class="not-watched">Haven't watched yet</span>
+                {% elif watch_count.count == 1 %}
+                    <span class="watched-once">Watched once</span>
+                {% else %}
+                    <span class="watched-multiple">Watched {{ watch_count.count }} times</span>
+                {% endif %}
+            </p>
+        </div>
         
-        <form method="post" action="{{ url_for('mark_watched', movie_id=movie.id) }}">
-            <button type="submit">Mark as Watched</button>
-        </form>
+        <details class="watched-form">
+            <summary>Mark as Watched</summary>
+            <form method="post" action="{{ url_for('mark_watched', movie_id=movie.id) }}" class="watched-date-form">
+                <div class="form-group">
+                    <label for="watched_date">When did you watch this?</label>
+                    <input 
+                        type="date" 
+                        id="watched_date"
+                        name="watched_date" 
+                        value="{{ today_date }}"
+                        max="{{ today_date }}"
+                        required
+                    >
+                    <p class="form-help">Select the date you watched this movie. You can backdate entries to build your viewing history.</p>
+                </div>
+                <div class="form-group">
+                    <label for="viewing_notes">Notes (optional)</label>
+                    <textarea 
+                        id="viewing_notes"
+                        name="notes" 
+                        rows="2"
+                        placeholder="Any thoughts about this viewing? Where did you watch it?"
+                    ></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Add to Viewing History</button>
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('watched_date').value='{{ today_date }}'">Today</button>
+                </div>
+            </form>
+        </details>
     </section>
     {% endif %}
 </article>
