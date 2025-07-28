@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Statistics</h1>
+
+<!-- Statistics Navigation -->
+<nav class="stats-navigation" role="navigation" aria-label="Statistics sections">
+    <a href="#overview-section" aria-current="location">Overview</a>
+    <a href="#achievements-section">Achievements</a>
+    <a href="#charts-section">Charts</a>
+    <a href="#top-movies-section">Top Movies</a>
+    {% if time_series_data %}
+    <a href="{{ url_for('timeline') }}">Timeline Analysis →</a>
+    {% endif %}
+</nav>
+
+<!-- User Level and Progress -->
+<div class="user-level" data-total-movies="{{ total_movies }}"></div>
+
+<!-- Overview Stats Grid -->
+<section id="overview-section" aria-labelledby="overview-stats">
+    <h2 id="overview-stats">Overview</h2>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_movies.count }}</div>
+            <div class="stat-label">Total Movies</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ total_ratings.count }}</div>
+            <div class="stat-label">Movies Rated</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ "%.1f"|format(avg_rating.avg or 0) }}</div>
+            <div class="stat-label">Average Rating</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ watchlist_size.count }}</div>
+            <div class="stat-label">Watchlist Size</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ total_watches.count }}</div>
+            <div class="stat-label">Total Watches</div>
+        </div>
+    </div>
+</section>
+
+<!-- Achievement Progress -->
+<section id="achievements-section" aria-labelledby="achievements">
+    <h2 id="achievements">Achievements</h2>
+    <div class="achievement-summary card">
+        <p>Unlocked: <span class="achievement-count">0 / 8</span></p>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0%"></div>
+        </div>
+        <p class="meta">Keep watching and rating movies to unlock achievements!</p>
+    </div>
+</section>
+
+<!-- Chart Visualization -->
+<section id="charts-section" aria-labelledby="rating-distribution">
+    <h2 id="rating-distribution">Rating Distribution</h2>
+    <div class="card" style="position: relative; height: 350px; padding: var(--space-xl);">
+        <canvas id="ratingsChart" aria-label="Chart showing distribution of movie ratings"></canvas>
+    </div>
+</section>
+
+<!-- Top Movies Section -->
+<section id="top-movies-section">
+    <!-- Top Rated Movies Table -->
+    {% if top_rated %}
+    <div class="section-header">
+        <h2 id="top-rated">Top Rated Movies</h2>
+    </div>
+    
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Movie</th>
+                    <th scope="col">Year</th>
+                    <th scope="col">Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movie in top_rated %}
+                <tr>
+                    <th scope="row">
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+                    </th>
+                    <td data-label="Year">{{ movie.year or 'Unknown' }}</td>
+                    <td data-label="Rating" class="number">{{ movie.rating }}/10</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Most Watched Movies Table -->
+    {% if most_watched %}
+    <div class="section-header" style="margin-top: var(--space-2xl);">
+        <h2 id="most-watched">Most Watched Movies</h2>
+    </div>
+    
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Movie</th>
+                    <th scope="col">Year</th>
+                    <th scope="col">Times Watched</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movie in most_watched %}
+                <tr>
+                    <th scope="row">
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+                    </th>
+                    <td data-label="Year">{{ movie.year or 'Unknown' }}</td>
+                    <td data-label="Times Watched" class="number">{{ movie.watch_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+
+{% if not top_rated and not most_watched %}
+<section class="welcome-section">
+    <h2>No statistics available yet</h2>
+    <p>Start rating movies to see your personalized statistics!</p>
+    <div class="welcome-actions">
+        <a href="{{ url_for('search') }}" class="btn btn-primary">Search Movies</a>
+    </div>
+</section>
+{% endif %}
+
+<!-- Scroll to section on page load -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle anchor navigation
+    if (window.location.hash) {
+        const element = document.querySelector(window.location.hash);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+    
+    // Update active navigation state
+    const navLinks = document.querySelectorAll('.stats-navigation a');
+    const sections = document.querySelectorAll('section[id]');
+    
+    function updateActiveNav() {
+        const scrollPosition = window.scrollY + 100;
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.offsetHeight;
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                navLinks.forEach(link => {
+                    link.removeAttribute('aria-current');
+                    if (link.getAttribute('href') === '#' + section.id) {
+                        link.setAttribute('aria-current', 'location');
+                    }
+                });
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', updateActiveNav);
+    
+    // Smooth scroll for navigation links
+    navLinks.forEach(link => {
+        if (link.getAttribute('href').startsWith('#')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/chart-config.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Rating distribution chart with actual data
+    const ratingsData = [
+        {{ rating_distribution.0 or 0 }},
+        {{ rating_distribution.1 or 0 }},
+        {{ rating_distribution.2 or 0 }},
+        {{ rating_distribution.3 or 0 }},
+        {{ rating_distribution.4 or 0 }}
+    ];
+    
+    const ratingsChart = window.ReelTrackerCharts.createRatingChart('ratingsChart', ratingsData);
+    
+    // Add accessibility enhancements
+    const canvas = document.getElementById('ratingsChart');
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'Bar chart showing distribution of movie ratings across 5 ranges');
+});
+</script>
+{% endblock %}

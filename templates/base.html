@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ReelTracker - Minimal movie tracking application">
+    <title>{% if title %}{{ title }} - {% endif %}ReelTracker</title>
+    
+    <!-- Minimalist CSS following Tufte's data-ink ratio principles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reeltracker.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reeltracker-enhanced.css') }}">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ url_for('static', filename='css/reeltracker.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='css/reeltracker-enhanced.css') }}" as="style">
+    
+    <!-- Skip link for accessibility -->
+    <style>
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--primary);
+            color: var(--bg-primary);
+            padding: 8px;
+            text-decoration: none;
+            z-index: 1000;
+        }
+        .skip-link:focus {
+            top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Accessibility: Skip to main content -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Navigation - Mobile-first design -->
+    <nav role="navigation" aria-label="Main navigation">
+        <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>
+            Home
+        </a>
+        <a href="{{ url_for('search') }}" {% if request.endpoint == 'search' %}aria-current="page"{% endif %}>
+            Search
+        </a>
+        <a href="{{ url_for('watchlist') }}" {% if request.endpoint == 'watchlist' %}aria-current="page"{% endif %}>
+            Watchlist
+        </a>
+        <a href="{{ url_for('stats') }}" {% if request.endpoint == 'stats' %}aria-current="page"{% endif %}>
+            Statistics
+        </a>
+        <a href="{{ url_for('timeline') }}" {% if request.endpoint == 'timeline' %}aria-current="page"{% endif %}>
+            Timeline
+        </a>
+    </nav>
+    
+    <!-- Main content area -->
+    <main id="main-content" role="main">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer - Minimal contact/legal only -->
+    <footer role="contentinfo">
+        <p class="meta">ReelTracker - Personal movie tracking</p>
+    </footer>
+    
+    <!-- Accessibility enhancements -->
+    <script src="{{ url_for('static', filename='js/accessibility.js') }}" defer></script>
+    
+    <!-- Chart.js and configuration -->
+    {% block scripts %}{% endblock %}
+    
+    <!-- UI Enhancements and Gamification -->
+    <script src="{{ url_for('static', filename='js/ui-enhancements.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/gamification.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/date-formatter.js') }}" defer></script>
+</body>
+</html>

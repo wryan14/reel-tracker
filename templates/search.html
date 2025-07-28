@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Search Movies</h1>
+
+<section aria-labelledby="search-form">
+    <h2 class="sr-only" id="search-form">Search Form</h2>
+    <form method="get" role="search">
+        <div class="form-group">
+            <label for="search-query">Search by title or director</label>
+            <input 
+                type="text" 
+                id="search-query"
+                name="q" 
+                value="{{ query }}" 
+                placeholder="Enter movie title or director name"
+                autocomplete="off"
+                required
+            >
+        </div>
+        <button type="submit">Search Movies</button>
+    </form>
+</section>
+
+{% if query %}
+    <section aria-labelledby="search-results" class="search-results">
+        <h2 id="search-results">Search Results</h2>
+        
+        {% if movies %}
+            <p class="meta">Found {{ movies|length }} movie(s) for "{{ query }}"</p>
+            
+            {% for movie in movies %}
+            <article class="movie">
+                <div class="movie-title">
+                    {% if movie.source == 'tmdb' %}
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}?source=tmdb">{{ movie.title }}</a>
+                    {% else %}
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+                    {% endif %}
+                    {% if movie.year %}<span class="meta">({{ movie.year }})</span>{% endif %}
+                </div>
+                {% if movie.director %}
+                    <div class="movie-meta">Director: {{ movie.director }}</div>
+                {% endif %}
+                {% if movie.genre %}
+                    <div class="movie-meta">Genre: {{ movie.genre }}</div>
+                {% endif %}
+                {% if movie.plot %}
+                    <div class="movie-meta">{{ movie.plot[:150] }}{% if movie.plot|length > 150 %}...{% endif %}</div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        {% else %}
+            <div class="no-results">
+                <p>No movies found for "{{ query }}"</p>
+                <p><a href="{{ url_for('add_sample_data') }}">Add sample data</a> to get started</p>
+            </div>
+        {% endif %}
+    </section>
+{% endif %}
+{% endblock %}

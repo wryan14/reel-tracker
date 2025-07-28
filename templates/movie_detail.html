@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article itemscope itemtype="http://schema.org/Movie">
+    <header>
+        <h1 itemprop="name">{{ movie.title }}</h1>
+        {% if movie.year %}
+            <p class="meta">
+                <time itemprop="datePublished" datetime="{{ movie.year }}">{{ movie.year }}</time>
+            </p>
+        {% endif %}
+    </header>
+    
+    <div class="movie-details">
+        {% if movie.poster_url %}
+        <img src="{{ movie.poster_url }}" alt="Poster for {{ movie.title }}" class="movie-poster" loading="lazy" itemprop="image">
+        {% endif %}
+        
+        {% if movie.director %}
+            <p><strong>Director:</strong> <span itemprop="director">{{ movie.director }}</span></p>
+        {% endif %}
+        
+        {% if movie.genre %}
+            <p><strong>Genre:</strong> <span itemprop="genre">{{ movie.genre }}</span></p>
+        {% endif %}
+        
+        {% if movie.plot %}
+            <p itemprop="description">{{ movie.plot }}</p>
+        {% endif %}
+        
+        {% if movie.vote_average %}
+        <p><strong>TMDB Rating:</strong> {{ movie.vote_average }}/10</p>
+        {% endif %}
+        
+        {% if movie.runtime %}
+        <p><strong>Runtime:</strong> {{ movie.runtime }} minutes</p>
+        {% endif %}
+        
+        {% if movie.source == 'tmdb' %}
+        <p class="meta"><em>Data from The Movie Database (TMDB)</em></p>
+        {% endif %}
+    </div>
+    
+    <!-- Save API Movie to Local Database -->
+    {% if movie.source == 'tmdb' %}
+    <section class="api-actions">
+        <form method="post" action="{{ url_for('save_movie_from_api', movie_id=movie.id) }}">
+            <button type="submit" class="btn-primary">Save to My Collection</button>
+        </form>
+        <p class="meta">Save this movie to enable rating, watchlist, and viewing history features.</p>
+    </section>
+    {% endif %}
+    
+    <!-- User Actions (only for saved movies) -->
+    {% if movie.source == 'local' or rating or in_watchlist %}
+    <!-- Rating Section -->
+    <section aria-labelledby="rating-section">
+        <h2 id="rating-section">Your Rating</h2>
+        {% if rating %}
+            <div class="rating">
+                <span class="rating-value" itemprop="ratingValue">{{ rating.rating }}</span>
+                <span class="rating-scale">/10</span>
+            </div>
+            {% if rating.review %}
+                <blockquote class="user-review">
+                    <p>{{ rating.review }}</p>
+                    <footer class="meta">Rated on {{ rating.rated_at }}</footer>
+                </blockquote>
+            {% endif %}
+            
+            <!-- Allow rating updates -->
+            <details>
+                <summary>Update Rating</summary>
+                <form method="post" action="{{ url_for('rate_movie', movie_id=movie.id) }}">
+                    <div class="form-group">
+                        <label for="rating">Rating (0-10)</label>
+                        <input 
+                            type="number" 
+                            id="rating"
+                            name="rating" 
+                            min="0" 
+                            max="10" 
+                            step="0.5" 
+                            value="{{ rating.rating }}"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="review">Review (optional)</label>
+                        <textarea 
+                            id="review"
+                            name="review" 
+                            rows="4"
+                            placeholder="Share your thoughts about this movie"
+                        >{{ rating.review or '' }}</textarea>
+                    </div>
+                    <button type="submit">Update Rating</button>
+                </form>
+            </details>
+        {% else %}
+            <form method="post" action="{{ url_for('rate_movie', movie_id=movie.id) }}">
+                <div class="form-group">
+                    <label for="rating">Rating (0-10)</label>
+                    <input 
+                        type="number" 
+                        id="rating"
+                        name="rating" 
+                        min="0" 
+                        max="10" 
+                        step="0.5" 
+                        placeholder="Rate this movie"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="review">Review (optional)</label>
+                    <textarea 
+                        id="review"
+                        name="review" 
+                        rows="4"
+                        placeholder="Share your thoughts about this movie"
+                    ></textarea>
+                </div>
+                <button type="submit">Add Rating</button>
+            </form>
+        {% endif %}
+    </section>
+    
+    <!-- Watchlist Section -->
+    <section aria-labelledby="watchlist-section">
+        <h2 id="watchlist-section">Watchlist</h2>
+        {% if in_watchlist %}
+            <p class="success" role="status">✓ In your watchlist</p>
+            <form method="post" action="{{ url_for('remove_from_watchlist', movie_id=movie.id) }}">
+                <button type="submit" class="secondary">Remove from Watchlist</button>
+            </form>
+        {% else %}
+            <form method="post" action="{{ url_for('add_to_watchlist', movie_id=movie.id) }}">
+                <button type="submit">Add to Watchlist</button>
+            </form>
+        {% endif %}
+    </section>
+    
+    <!-- Viewing History Section -->
+    <section aria-labelledby="viewing-history">
+        <h2 id="viewing-history">Viewing History</h2>
+        <p class="meta">
+            Watched {{ watch_count.count }} time(s)
+            {% if watch_count.count == 1 %}
+                <span class="sr-only">once</span>
+            {% elif watch_count.count > 1 %}
+                <span class="sr-only">{{ watch_count.count }} times</span>
+            {% endif %}
+        </p>
+        
+        <form method="post" action="{{ url_for('mark_watched', movie_id=movie.id) }}">
+            <button type="submit">Mark as Watched</button>
+        </form>
+    </section>
+    {% endif %}
+</article>
+
+<!-- Breadcrumb navigation -->
+<nav aria-label="Breadcrumb">
+    <ol class="breadcrumb">
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li aria-current="page">{{ movie.title }}</li>
+    </ol>
+</nav>
+{% endblock %}

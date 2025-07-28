@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <h1>ReelTracker</h1>
+    <p class="hero-subtitle">Your Personal Movie Tracking Companion</p>
+    {% if not recent_ratings and not recent_watches %}
+        <div class="welcome-actions">
+            <a href="{{ url_for('search') }}" class="btn btn-primary">Start Exploring Movies</a>
+            <a href="{{ url_for('stats') }}" class="btn secondary">View Statistics</a>
+        </div>
+    {% endif %}
+</div>
+
+{% if recent_ratings or recent_watches %}
+    <section aria-labelledby="recent-activity">
+        <div class="section-header">
+            <h2 id="recent-activity">Recent Activity</h2>
+            <a href="{{ url_for('stats') }}" class="btn small secondary">View All Stats</a>
+        </div>
+        
+        {% if recent_ratings %}
+            <section aria-labelledby="recent-ratings">
+                <h3 id="recent-ratings">Recently Rated</h3>
+                {% for movie in recent_ratings %}
+                <article class="activity-card">
+                    <div class="activity-info">
+                        <div class="movie-title">
+                            <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+                            {% if movie.year %}<span class="meta">({{ movie.year }})</span>{% endif %}
+                        </div>
+                        <div class="date-display" data-datetime="{{ movie.rated_at }}">
+                            {{ movie.rated_at.split()[0] if movie.rated_at else '' }}
+                        </div>
+                    </div>
+                    <div class="activity-rating">
+                        <span class="rating-value">{{ movie.rating }}</span>
+                        <span class="rating-scale">/10</span>
+                    </div>
+                </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+        
+        {% if recent_watches %}
+            <section aria-labelledby="recent-watches">
+                <h3 id="recent-watches">Recently Watched</h3>
+                {% for movie in recent_watches %}
+                <article class="activity-card">
+                    <div class="activity-info">
+                        <div class="movie-title">
+                            <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+                            {% if movie.year %}<span class="meta">({{ movie.year }})</span>{% endif %}
+                        </div>
+                        <div class="date-display" data-datetime="{{ movie.watched_at }}">
+                            Watched: {{ movie.watched_at.split()[0] if movie.watched_at else '' }}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </section>
+{% else %}
+    <section class="welcome-section">
+        <h2>Welcome to ReelTracker!</h2>
+        <p>Start building your personal movie collection and track your viewing habits.</p>
+        <div class="welcome-actions">
+            <a href="{{ url_for('search') }}" class="btn btn-primary">Search Movies</a>
+            <a href="{{ url_for('watchlist') }}" class="btn secondary">Create Watchlist</a>
+        </div>
+    </section>
+{% endif %}
+{% endblock %}

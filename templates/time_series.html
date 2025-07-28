@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Viewing Habits Timeline</h1>
+
+{% if error %}
+<div class="card">
+    <h2>Timeline Not Available</h2>
+    <p>{{ error }}</p>
+    <div class="welcome-actions">
+        <a href="{{ url_for('search') }}" class="btn btn-primary">Add Movies</a>
+    </div>
+</div>
+{% elif not time_series_data %}
+<div class="card">
+    <h2>No Timeline Data Available</h2>
+    <p>Start watching and rating movies to see your viewing timeline!</p>
+    <div class="welcome-actions">
+        <a href="{{ url_for('search') }}" class="btn btn-primary">Search Movies</a>
+        <a href="{{ url_for('watchlist') }}" class="btn secondary">View Watchlist</a>
+    </div>
+</div>
+{% else %}
+
+<!-- Navigation for different time views -->
+<section aria-labelledby="timeline-nav">
+    <nav class="timeline-nav" role="tablist">
+        <button type="button" role="tab" aria-selected="true" aria-controls="daily-view" id="daily-tab">Daily</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="weekly-view" id="weekly-tab">Weekly</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="monthly-view" id="monthly-tab">Monthly</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="patterns-view" id="patterns-tab">Day Patterns</button>
+    </nav>
+</section>
+
+<!-- Viewing Streaks Summary -->
+{% if viewing_streaks %}
+<section aria-labelledby="streaks-summary" class="stats-grid">
+    <h2 id="streaks-summary" class="sr-only">Viewing Consistency</h2>
+    
+    <div class="stat-card" data-current-streak="{{ viewing_streaks.current_streak }}">
+        <div class="stat-value">{{ viewing_streaks.current_streak }}</div>
+        <div class="stat-label">Current Streak (Days)</div>
+        {% if viewing_streaks.current_streak > 0 %}
+        <div class="streak-indicator active">
+            🔥 Active Streak!
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-value">{{ viewing_streaks.longest_streak }}</div>
+        <div class="stat-label">Longest Streak</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-value">{{ viewing_streaks.total_viewing_days }}</div>
+        <div class="stat-label">Total Viewing Days</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-value">{{ viewing_streaks.consistency_score }}%</div>
+        <div class="stat-label">Consistency Score</div>
+    </div>
+</section>
+{% endif %}
+
+<div class="timeline-container">
+    <!-- Daily Timeline View -->
+    <div id="daily-view" class="timeline-view active" role="tabpanel" aria-labelledby="daily-tab">
+        <section aria-labelledby="daily-timeline">
+            <h2 id="daily-timeline">Daily Viewing Activity</h2>
+            
+            {% if time_series_data and time_series_data.daily and time_series_data.daily.total > 0 %}
+            <div class="chart-container">
+                <div style="position: relative; height: 400px;">
+                    <canvas id="dailyChart" aria-label="Daily viewing activity chart"></canvas>
+                </div>
+                
+                <div class="chart-summary">
+                    <p><strong>Total Views:</strong> {{ time_series_data.daily.total }}</p>
+                    <p><strong>Peak Day:</strong> {{ time_series_data.daily.max_day }} movies</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-results">
+                <p>No daily viewing data available yet.</p>
+                <p><a href="{{ url_for('search') }}">Start watching movies</a> to see your daily patterns.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Weekly Timeline View -->
+    <div id="weekly-view" class="timeline-view" role="tabpanel" aria-labelledby="weekly-tab">
+        <section aria-labelledby="weekly-timeline">
+            <h2 id="weekly-timeline">Weekly Viewing Trends</h2>
+            
+            {% if time_series_data and time_series_data.weekly and time_series_data.weekly.total > 0 %}
+            <div class="chart-container">
+                <div style="position: relative; height: 400px;">
+                    <canvas id="weeklyChart" aria-label="Weekly viewing trends chart"></canvas>
+                </div>
+                
+                <div class="chart-summary">
+                    <p><strong>Total Views:</strong> {{ time_series_data.weekly.total }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-results">
+                <p>No weekly viewing data available yet.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Monthly Timeline View -->
+    <div id="monthly-view" class="timeline-view" role="tabpanel" aria-labelledby="monthly-tab">
+        <section aria-labelledby="monthly-timeline">
+            <h2 id="monthly-timeline">Monthly Viewing Patterns</h2>
+            
+            {% if time_series_data and time_series_data.monthly and time_series_data.monthly.total > 0 %}
+            <div class="chart-container">
+                <div style="position: relative; height: 400px;">
+                    <canvas id="monthlyChart" aria-label="Monthly viewing patterns chart"></canvas>
+                </div>
+                
+                <div class="chart-summary">
+                    <p><strong>Total Views:</strong> {{ time_series_data.monthly.total }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-results">
+                <p>No monthly viewing data available yet.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Day Patterns View -->
+    <div id="patterns-view" class="timeline-view" role="tabpanel" aria-labelledby="patterns-tab">
+        <section aria-labelledby="patterns-timeline">
+            <h2 id="patterns-timeline">Day of Week Patterns</h2>
+            
+            {% if time_series_data and time_series_data.day_patterns and time_series_data.day_patterns.total > 0 %}
+            <div class="chart-container">
+                <div style="position: relative; height: 400px;">
+                    <canvas id="patternsChart" aria-label="Day of week viewing patterns chart"></canvas>
+                </div>
+                
+                <div class="chart-summary">
+                    <p><strong>Total Views:</strong> {{ time_series_data.day_patterns.total }}</p>
+                    {% set max_count = time_series_data.day_patterns.counts | max %}
+                    {% set max_index = time_series_data.day_patterns.counts.index(max_count) %}
+                    <p><strong>Most Active Day:</strong> {{ time_series_data.day_patterns.labels[max_index] if max_count > 0 else 'N/A' }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-results">
+                <p>No day pattern data available yet.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+{% if time_series_data and time_series_data.summary %}
+<section aria-labelledby="viewing-summary">
+    <h2 id="viewing-summary">Viewing Habits Summary</h2>
+    
+    <div class="summary-grid">
+        <div class="summary-card card">
+            <h3>Activity</h3>
+            <ul>
+                <li><strong>Total Views:</strong> {{ time_series_data.summary.total_views }}</li>
+                <li><strong>Unique Movies:</strong> {{ time_series_data.summary.unique_movies }}</li>
+                <li><strong>Average per Week:</strong> {{ time_series_data.summary.avg_per_week }}</li>
+                {% if time_series_data.summary.viewing_span_days %}
+                <li><strong>Tracking Period:</strong> {{ time_series_data.summary.viewing_span_days }} days</li>
+                {% endif %}
+            </ul>
+        </div>
+        
+        <div class="summary-card card">
+            <h3>Ratings</h3>
+            {% if time_series_data.summary.avg_rating %}
+            <p><strong>Average Rating:</strong> {{ time_series_data.summary.avg_rating }}/10</p>
+            {% else %}
+            <p>No ratings data available</p>
+            {% endif %}
+            
+            {% if time_series_data.trends and time_series_data.trends.rating_trend %}
+            <p><strong>Rating Trend:</strong> 
+                {% if time_series_data.trends.rating_trend > 0 %}
+                    ↗ +{{ time_series_data.trends.rating_trend }}
+                {% elif time_series_data.trends.rating_trend < 0 %}
+                    ↘ {{ time_series_data.trends.rating_trend }}
+                {% else %}
+                    → Stable
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+        
+        <div class="summary-card card">
+            <h3>Top Genres</h3>
+            {% if time_series_data.summary.top_genres %}
+            <ul>
+                {% for genre, count in time_series_data.summary.top_genres %}
+                <li>{{ genre }}: {{ count }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No genre data available</p>
+            {% endif %}
+        </div>
+        
+        <div class="summary-card card">
+            <h3>Trends</h3>
+            {% if time_series_data.trends %}
+                {% if time_series_data.trends.frequency_trend %}
+                <p><strong>Viewing Frequency:</strong> {{ time_series_data.trends.trend_direction|title }}</p>
+                {% endif %}
+                
+                {% if time_series_data.summary.year_range %}
+                <p><strong>Movie Years:</strong> {{ time_series_data.summary.year_range[0] }} - {{ time_series_data.summary.year_range[1] }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/chart-config.js') }}"></script>
+<script>
+// Timeline view switching
+function showTimelineView(viewName) {
+    // Hide all views
+    document.querySelectorAll('.timeline-view').forEach(view => {
+        view.classList.remove('active');
+    });
+    
+    // Show selected view
+    const selectedView = document.getElementById(viewName + '-view');
+    if (selectedView) {
+        selectedView.classList.add('active');
+    }
+    
+    // Update tab states
+    document.querySelectorAll('[role="tab"]').forEach(tab => {
+        tab.setAttribute('aria-selected', 'false');
+    });
+    const selectedTab = document.getElementById(viewName + '-tab');
+    if (selectedTab) {
+        selectedTab.setAttribute('aria-selected', 'true');
+    }
+}
+
+// Tab click handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers to tabs
+    document.querySelectorAll('.timeline-nav button[role="tab"]').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const viewName = this.id.replace('-tab', '');
+            showTimelineView(viewName);
+        });
+    });
+
+    {% if time_series_data %}
+    
+    // Chart configuration
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 4
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { 
+                    stepSize: 1,
+                    font: { size: 12 }
+                }
+            },
+            x: {
+                ticks: {
+                    font: { size: 12 }
+                }
+            }
+        }
+    };
+    
+    // Daily chart
+    {% if time_series_data.daily.total > 0 %}
+    const dailyChart = new Chart(document.getElementById('dailyChart'), {
+        type: 'line',
+        data: {
+            labels: {{ time_series_data.daily.labels | tojson }},
+            datasets: [{
+                label: 'Movies Watched',
+                data: {{ time_series_data.daily.counts | tojson }},
+                borderColor: '#64748b',
+                backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                tension: 0.1,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: chartOptions
+    });
+    {% endif %}
+    
+    // Weekly chart
+    {% if time_series_data.weekly.total > 0 %}
+    const weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ time_series_data.weekly.labels | tojson }},
+            datasets: [{
+                label: 'Movies Watched',
+                data: {{ time_series_data.weekly.counts | tojson }},
+                backgroundColor: '#64748b',
+                borderRadius: 4
+            }]
+        },
+        options: chartOptions
+    });
+    {% endif %}
+    
+    // Monthly chart
+    {% if time_series_data.monthly.total > 0 %}
+    const monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+        type: 'line',
+        data: {
+            labels: {{ time_series_data.monthly.labels | tojson }},
+            datasets: [{
+                label: 'Movies Watched',
+                data: {{ time_series_data.monthly.counts | tojson }},
+                borderColor: '#64748b',
+                backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                tension: 0.1,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: chartOptions
+    });
+    {% endif %}
+    
+    // Day patterns chart
+    {% if time_series_data.day_patterns.total > 0 %}
+    const patternsChart = new Chart(document.getElementById('patternsChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ time_series_data.day_patterns.labels | tojson }},
+            datasets: [{
+                label: 'Movies Watched',
+                data: {{ time_series_data.day_patterns.counts | tojson }},
+                backgroundColor: '#64748b',
+                borderRadius: 4
+            }]
+        },
+        options: chartOptions
+    });
+    {% endif %}
+    
+    {% endif %}
+    
+    // Keyboard navigation for tabs
+    document.querySelectorAll('[role="tab"]').forEach(tab => {
+        tab.addEventListener('keydown', function(e) {
+            const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+            const currentIndex = tabs.indexOf(this);
+            let newIndex;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    newIndex = currentIndex > 0 ? currentIndex - 1 : tabs.length - 1;
+                    tabs[newIndex].click();
+                    tabs[newIndex].focus();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    newIndex = currentIndex < tabs.length - 1 ? currentIndex + 1 : 0;
+                    tabs[newIndex].click();
+                    tabs[newIndex].focus();
+                    break;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

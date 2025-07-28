@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Watchlist</h1>
+
+<!-- Watchlist Progress -->
+{% if movies %}
+<div class="watchlist-progress" data-watched="{{ watched_count|default(0) }}" data-total="{{ movies|length }}">
+    <p>Progress: {{ watched_count|default(0) }} / {{ movies|length }} movies watched</p>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ ((watched_count|default(0) / movies|length) * 100)|round|int }}%"></div>
+    </div>
+</div>
+{% endif %}
+
+{% if movies %}
+    <p class="meta">{{ movies|length }} movie(s) in your watchlist</p>
+    
+    {% for movie in movies %}
+    <article class="movie card">
+        <div class="movie-title">
+            <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+            {% if movie.year %}<span class="meta">({{ movie.year }})</span>{% endif %}
+        </div>
+        
+        {% if movie.director %}
+            <div class="movie-meta">Director: {{ movie.director }}</div>
+        {% endif %}
+        
+        <div class="movie-meta date-display">
+            Added: <time datetime="{{ movie.added_at }}">{{ movie.added_at.split()[0] if movie.added_at else '' }}</time>
+        </div>
+        
+        <div class="button-group">
+            <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn secondary">
+                View Details
+            </a>
+            
+            <form method="post" action="{{ url_for('remove_from_watchlist', movie_id=movie.id) }}">
+                <button type="submit" class="btn secondary">Remove</button>
+            </form>
+            
+            <form method="post" action="{{ url_for('mark_watched', movie_id=movie.id) }}">
+                <button type="submit" class="btn btn-primary">Mark Watched</button>
+            </form>
+        </div>
+    </article>
+    {% endfor %}
+{% else %}
+    <section class="welcome-section">
+        <h2>Your watchlist is empty</h2>
+        <p>Start adding movies you want to watch!</p>
+        <div class="welcome-actions">
+            <a href="{{ url_for('search') }}" class="btn btn-primary">Search for Movies</a>
+        </div>
+    </section>
+{% endif %}
+{% endblock %}
