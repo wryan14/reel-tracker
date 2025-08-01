@@ -9,8 +9,11 @@ on:
 
 jobs:
   claude-python-agent:
-    # Only run when Claude is mentioned
-    if: contains(github.event.comment.body, '@claude') || (github.event_name == 'issues' && github.event.action == 'opened')
+    # Only run when Claude is mentioned in comments, or for new issues
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && github.event.action == 'opened')
     runs-on: ubuntu-latest
     
     permissions:
@@ -21,7 +24,7 @@ jobs:
       
     steps:
     - name: Run Claude Code Python Agent
-      uses: anthropics/claude-code-action@v1
+      uses: anthropics/claude-code-action@latest
       with:
         anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
         
