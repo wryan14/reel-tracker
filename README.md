@@ -63,3 +63,7 @@ python3 app.py
 
 - **[docs/TECHNICAL.md](docs/TECHNICAL.md)** - Developer setup, architecture, troubleshooting
 - **[docs/STAKEHOLDER.md](docs/STAKEHOLDER.md)** - Business impact and strategic value
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
