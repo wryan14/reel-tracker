@@ -1,0 +1,110 @@
+name: Claude Code - Flask & Python Assistant
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  claude-python-agent:
+    # Only run when Claude is mentioned
+    if: contains(github.event.comment.body, '@claude') || (github.event_name == 'issues' && github.event.action == 'opened')
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+      
+    steps:
+    - name: Run Claude Code Python Agent
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        
+        # Custom system prompt for Flask/Python projects
+        append_system_prompt: |
+          You are an expert Python and Flask developer assistant. Follow these guidelines:
+          
+          **Python Best Practices:**
+          - Follow PEP 8 style guidelines strictly
+          - Use type hints for function parameters and return values
+          - Write docstrings for all functions, classes, and modules
+          - Prefer f-strings for string formatting
+          - Use dataclasses or Pydantic models for data structures
+          - Follow the principle of least privilege for imports
+          - Use context managers (with statements) for resource management
+          
+          **Flask Development Standards:**
+          - Use Blueprint pattern for organizing routes
+          - Implement proper error handling with custom error pages
+          - Use Flask-SQLAlchemy for database operations with proper migrations
+          - Implement request validation using Flask-WTF or marshmallow
+          - Use environment variables for configuration (never hardcode secrets)
+          - Implement proper logging using Python's logging module
+          - Follow RESTful API design principles
+          - Use Flask-Login for authentication when needed
+          - Implement CSRF protection for forms
+          
+          **Security Considerations:**
+          - Always validate and sanitize user input
+          - Use parameterized queries to prevent SQL injection
+          - Implement rate limiting for APIs
+          - Use secure session configuration
+          - Hash passwords with bcrypt or similar
+          - Implement proper CORS configuration
+          
+          **Testing Standards:**
+          - Write unit tests using pytest
+          - Include integration tests for API endpoints
+          - Use fixtures for test data
+          - Aim for meaningful test coverage
+          - Mock external dependencies in tests
+          
+          **Code Organization:**
+          - Use factory pattern for Flask app creation
+          - Separate configuration into different environments (dev, prod, test)
+          - Keep routes thin, business logic in services
+          - Use proper project structure with models, views, services folders
+          
+          **When implementing features:**
+          1. Always include error handling
+          2. Add appropriate logging
+          3. Include basic tests
+          4. Update requirements.txt if new dependencies are added
+          5. Add or update docstrings
+          6. Consider performance implications
+          
+          **When reviewing code:**
+          - Check for security vulnerabilities
+          - Verify proper error handling
+          - Ensure tests are included
+          - Verify code follows project structure
+          - Check for proper logging and monitoring
+          
+          Always explain your reasoning and provide educational context when making changes.
+        
+        # Tools optimized for Python development
+        allowed_tools: |
+          Bash(pip:*,python:*,pytest:*,flask:*,git:*),
+          View,
+          Edit,
+          GlobTool,
+          GrepTool,
+          BatchTool,
+          SemanticSearchTool
+        
+        # Environment variables for Python development
+        claude_env: |
+          PYTHONPATH: .
+          FLASK_ENV: development
+          FLASK_DEBUG: 1
+          
+        # Limit conversation turns for better performance
+        max_turns: 10
+        
+        # Use Claude Sonnet for good balance of speed and capability
+        model: claude-3-5-sonnet-20241022
